@@ -1,16 +1,16 @@
-class Symbol {
+class StockSymbol {
   final String description;
   final String displaySymbol;
   final String symbol;
 
-  Symbol({
+  StockSymbol({
     required this.description,
     required this.displaySymbol,
     required this.symbol,
   });
 
-  factory Symbol.fromJson(Map<String, dynamic> json) {
-    return Symbol(
+  factory StockSymbol.fromJson(Map<String, dynamic> json) {
+    return StockSymbol(
       description: json['description'],
       displaySymbol: json['displaySymbol'],
       symbol: json['symbol'],
