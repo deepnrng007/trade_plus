@@ -1,17 +1,18 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart';
+import 'package:trade_plus/models/Symbol.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:web_socket_channel/io.dart';
-import '../models//symbol.dart';
 
 class WebSocketService {
   final String _apiKey = 'cscfm5hr01qpohrs3obgcscfm5hr01qpohrs3oc0';
   late WebSocketChannel channel;
   final Set<String> _subscribedSymbols = {};
   final StreamController _controller = StreamController.broadcast();
-  final priceMap = <String, double>{};
+  final priceMap = <String, dynamic>{};
 
   Stream get priceStream => _controller.stream;
 
@@ -65,12 +66,12 @@ void unsubscribeFromSymbol(String symbol) {
     }
   }
 
-  void subscribeToSymbols(List<String> symbols) {
-    for (String symbol in symbols) {
-      if (isSubscribed(symbol)) {
+  void subscribeToSymbols(List<StockSymbol> symbols) {
+    for (StockSymbol symbol in symbols) {
+      if (isSubscribed(symbol.symbol)) {
         return;
       }
-      subscribeToSymbol(symbol);
+      subscribeToSymbol(symbol.symbol);
     }
   }
   void subscribeToSymbol(String symbol) {
@@ -87,6 +88,11 @@ void unsubscribeFromSymbol(String symbol) {
   }
 }
 
+
+// Create providers for both services
+final webSocketServiceProvider = Provider<WebSocketService>((ref) {
+  return WebSocketService(); // Replace with your actual implementation
+});
 
 
 // class WebSocketService {
@@ -127,8 +133,8 @@ void unsubscribeFromSymbol(String symbol) {
 //     );
 //   }
 
-//   void subscribeToSymbols(List<Symbol> symbols) {
-//     for (Symbol symbol in symbols) {
+//   void subscribeToSymbols(List<StockSymbol> symbols) {
+//     for (StockSymbol symbol in symbols) {
 //       final message = json.encode({'type': 'subscribe', 'symbol': symbol.symbol});
 //       print('Subscribing to: $message');
 //       channel.sink.add(message);

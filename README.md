@@ -1,6 +1,5 @@
 # trade_plus
 
-
 A Flutter application that displays real-time stock prices using WebSocket connections and implements efficient subscription management based on visible items in the viewport.
 
 ## Features
@@ -19,7 +18,7 @@ Before you begin, ensure you have met the following requirements:
 - A valid API key from your stock data provider
 - Git for version control
 
-## Installation
+## Installation and Running the project
 
 1. Clone the repository:
 ```bash
@@ -38,12 +37,9 @@ API_KEY=your_api_key_here
 5. Run the app:
 flutter run
 
+6. To run the test: 
+flutter test 
 
--Performance Optimization
--The app implements several optimization techniques:
 
-Lazy loading of stock symbols
-Dynamic WebSocket subscription management
-Viewport-based subscription control
-Efficient memory management
+--
 
