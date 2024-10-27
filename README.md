@@ -1,16 +1,49 @@
 # trade_plus
 
-A new Flutter project.
 
-## Getting Started
+A Flutter application that displays real-time stock prices using WebSocket connections and implements efficient subscription management based on visible items in the viewport.
 
-This project is a starting point for a Flutter application.
+## Features
 
-A few resources to get you started if this is your first Flutter project:
+- Real-time stock price updates via WebSocket
+- Infinite scrolling for loading more stock symbols
+- Efficient WebSocket subscription management
+- Optimized performance by subscribing only to visible symbols
+- Clean and responsive UI
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+## Prerequisites
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+Before you begin, ensure you have met the following requirements:
+- Flutter SDK (Version 3.0 or higher)
+- Dart SDK (Version 2.17 or higher)
+- A valid API key from your stock data provider
+- Git for version control
+
+## Installation
+
+1. Clone the repository:
+```bash
+git clone https://github.com/yourusername/real-time-stock-app.git
+
+2. Navigate to the project directory:
+cd trade_plus
+
+3. Install dependencies:
+flutter pub get
+
+4. Create a .env file in the root directory and add your API key:
+API_KEY=your_api_key_here
+
+
+5. Run the app:
+flutter run
+
+
+-Performance Optimization
+-The app implements several optimization techniques:
+
+Lazy loading of stock symbols
+Dynamic WebSocket subscription management
+Viewport-based subscription control
+Efficient memory management
+
