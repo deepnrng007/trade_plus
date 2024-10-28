@@ -55,7 +55,7 @@ Before you begin, ensure you have met the following requirements:
 ## Installation and Running the project
 
 1. Clone the repository:
-git clone https://github.com/yourusername/real-time-stock-app.git
+git clone [https://github.com/yourusername/real-time-stock-app.git](https://github.com/deepnrng007/trade_plus.git)
 
 2. Navigate to the project directory:
 cd trade_plus
