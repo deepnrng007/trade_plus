@@ -60,6 +60,9 @@ git clone https://github.com/deepnrng007/trade_plus.git
 2. Navigate to the project directory:
 cd trade_plus
 
+3. switch to branch `riverpod_impl`
+git checkout riverpod_impl
+
 3. Install dependencies:
 flutter pub get
 
