@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
-import '../real_time_stock_app_test.mocks.dart';
+import '../mocks.mocks.dart';
 
 void main() {
   group('WebSocketService', () {
@@ -33,7 +33,7 @@ void main() {
 
       String? receivedMessage; // Make it nullable
       // Pass a correctly typed callback to getPrice
-      mockWebSocketService.getPrice((String message) {
+      mockWebSocketService.getPrice((String? message) {
         receivedMessage = message; // Assign the received message
       } as String?);
 
@@ -59,15 +59,5 @@ void main() {
       expect(() => mockWebSocketService.connectToWebSocket(), throwsException);
     });
 
-    // test('should maintain connection state', () {
-    //   final mockWebSocketService = MockWebSocketService();
-    //   when(mockWebSocketService.isSubscribed("symbol").thenReturn(true);
-
-    //   expect(mockWebSocketService.isSubscribed("symbol"), true);
-
-    //   // Simulating disconnection
-    //   when(mockWebSocketService.isConnected).thenReturn(false);
-    //   expect(mockWebSocketService.isConnected, false);
-    // });
   });
 }

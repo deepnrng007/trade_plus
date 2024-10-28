@@ -3,17 +3,21 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 import 'package:trade_plus/models/Symbol.dart';
-import 'package:trade_plus/real_time_stock_app.dart';
-import 'package:trade_plus/services.dart/price_ticker_socket_service.dart';
-import 'package:trade_plus/services.dart/stocks_service.dart';
+import 'package:trade_plus/services/price_ticker_socket_service.dart';
+import 'package:trade_plus/services/stocks_service.dart';
+import 'package:trade_plus/widgets/stock_list.dart';
 
-import 'real_time_stock_app_test.mocks.dart';
+import '../mocks.mocks.dart';
 
-void main() {
+
+void main() async {
+  TestWidgetsFlutterBinding.ensureInitialized();
+  await dotenv.load();  
   late MockWebSocketService mockWebSocketService;
   late MockStockApiService mockStockApiService;
 
@@ -26,11 +30,11 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          webSocketServiceProvider.overrideWithValue(mockWebSocketService),
+          webSocketServiceProvider.overrideWithValue(mockWebSocketService as WebSocketService),
           stockApiServiceProvider.overrideWithValue(mockStockApiService),
         ],
         child: const MaterialApp(
-          home: RealTimeStockApp(),
+          home: StockList(),
         ),
       ),
     );
