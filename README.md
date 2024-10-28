@@ -3,6 +3,10 @@
 ## Overview
 The Real-Time Stock Application is a Flutter-based mobile application that displays stock symbols and their real-time prices. The application allows users to search for specific stocks and dynamically updates prices using WebSocket connections.
 
+## Screenshot
+![stock list Screen](assets/stock_list.png)
+![filtered stock list Screen](assets/stock_filtered_list.png)
+
 ## Prerequisites
 
 Before you begin, ensure you have met the following requirements:
