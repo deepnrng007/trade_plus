@@ -7,16 +7,21 @@ class SearchInputWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: TextField(
-        decoration: const InputDecoration(
-            labelText: 'Search',
-            border: OutlineInputBorder(),
-            suffixIcon: Icon(Icons.search),
-            filled: true,
-            fillColor: Colors.white),
-        onChanged: onTextChanged,
+    return GestureDetector(
+      onTap: () {
+        FocusScope.of(context).unfocus(); // Dismiss the keyboard
+      },
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: TextField(
+          decoration: const InputDecoration(
+              labelText: 'Search',
+              border: OutlineInputBorder(),
+              suffixIcon: Icon(Icons.search),
+              filled: true,
+              fillColor: Colors.white),
+          onChanged: onTextChanged,
+        ),
       ),
     );
   }

@@ -1,12 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:trade_plus/bloc/stock_list/stock_list_bloc.dart';
+import 'package:trade_plus/bloc/stock_price/stock_price_bloc.dart';
 import 'package:trade_plus/widgets/stock_list.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
-void main() async{
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: ".env");
-  runApp(ProviderScope(child: MyApp()));
+  runApp(MultiBlocProvider(providers: [
+    BlocProvider(create: (_) => StockListBloc()),
+    BlocProvider(create: (_) => WebSocketBloc()),
+  ], child: const MyApp()));
 }
 
 class MyApp extends StatelessWidget {

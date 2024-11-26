@@ -1,20 +1,15 @@
 import 'dart:convert';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:http/http.dart' as http;
+
 import 'package:trade_plus/models/Symbol.dart';
 import 'package:trade_plus/utils/constants.dart';
+import 'package:http/http.dart' as http;
 
-class StockApiService {
-  final String apiKey;
-
-  StockApiService(this.apiKey);
-
-  // Method to fetch symbols with pagination
+class StockRepository {
   Future<List<StockSymbol>> fetchSymbols(
       {int limit = 50, int offset = 0}) async {
     try {
-      final response = await http
-          .get(Uri.parse('${Constants.stockSymbolEndpoint}&token=$apiKey'));
+      final response = await http.get(Uri.parse(
+          '${Constants.stockSymbolEndpoint}&token=${Constants.apiKey}'));
       if (response.statusCode == 200) {
         final jsonResponse = json.decode(response.body)
             as List<dynamic>; // Ensure it's treated as a List
@@ -23,7 +18,6 @@ class StockApiService {
             .take(limit)
             .map((item) => StockSymbol.fromJson(item))
             .toList();
-
         return listItems;
       } else {
         throw Exception('Failed to load stock symbols');
@@ -34,7 +28,3 @@ class StockApiService {
     }
   }
 }
-
-final stockApiServiceProvider = Provider<StockApiService>((ref) {
-  return StockApiService("");
-});

@@ -1,11 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:trade_plus/bloc/stock_list/stock_list_bloc.dart';
+import 'package:trade_plus/bloc/stock_list/stock_list_event.dart';
+import 'package:trade_plus/bloc/stock_list/stock_list_state.dart';
+import 'package:trade_plus/bloc/stock_price/stock_price_bloc.dart';
+import 'package:trade_plus/bloc/stock_price/stock_price_event.dart';
+import 'package:trade_plus/bloc/stock_price/stock_price_state.dart';
 import 'package:trade_plus/models/StockPrice.dart';
 import 'package:trade_plus/models/Symbol.dart';
-import 'package:trade_plus/providers/StockProvider.dart';
-import 'package:trade_plus/services/price_ticker_socket_service.dart';
-import 'package:trade_plus/services/stocks_service.dart';
 import 'package:trade_plus/utils/constants.dart';
+import 'package:trade_plus/utils/enums.dart';
+import 'package:trade_plus/widgets/screens/stock_detail_screen.dart';
 import 'package:trade_plus/widgets/search_input.dart';
 
 class StockList extends ConsumerStatefulWidget {
@@ -16,16 +22,7 @@ class StockList extends ConsumerStatefulWidget {
 }
 
 class _RealTimeStockAppState extends ConsumerState<StockList> {
-  final WebSocketService wsSocket = WebSocketService();
-
-  final StockApiService stockSymbolService = StockApiService(Constants.apiKey);
-
-  List<StockSymbol> symbols = [];
-  int currentPage = 0;
-  final int limit = 20; // Number of symbols per page
-  bool isLoadingMore = false;
-  bool hasMoreSymbols = true;
-  List<StockSymbol> filteredSymbols = []; // List for filtered symbols
+  final limit= 20;
 
   late ScrollController _scrollController;
 
@@ -34,12 +31,11 @@ class _RealTimeStockAppState extends ConsumerState<StockList> {
     super.initState();
     _scrollController = ScrollController();
     _scrollController.addListener(_scrollListener);
-    _loadMoreSymbols();
+    context.read<StockListBloc>().add(FetchSymbols());
   }
 
   @override
   void dispose() {
-    wsSocket.dispose();
     _scrollController.removeListener(_scrollListener);
     _scrollController.dispose();
     super.dispose();
@@ -55,47 +51,26 @@ class _RealTimeStockAppState extends ConsumerState<StockList> {
   }
 
   Future<void> _loadMoreSymbols() async {
-    if (isLoadingMore || !hasMoreSymbols) return;
-
-    setState(() {
-      isLoadingMore = true;
-    });
-
-    final newSymbols = await stockSymbolService.fetchSymbols(
-        limit: limit, offset: currentPage * limit);
-
-    if (newSymbols.isNotEmpty) {
-      setState(() {
-        currentPage++;
-        symbols.addAll(newSymbols);
-        filteredSymbols = List.from(symbols);
-      });
-      _updateSubscriptions(); // Update subscriptions after loading new symbols
-    } else {
-      setState(() {
-        hasMoreSymbols = false; // No more symbols to load
-      });
-    }
-
-    setState(() {
-      isLoadingMore = false;
-    });
+    final cPage = context.read<StockListBloc>().state.currentPage;
+    context
+        .read<StockListBloc>()
+        .add(LoadMoreSymbols(limit: limit, offset: cPage * limit));
   }
 
   void _updateSubscriptions() {
     int startIndex = (_scrollController.position.pixels ~/ 70) - 10;
     int endIndex = startIndex + 30;
-
+    final symbols = context.read<StockListBloc>().state.symbols;
     startIndex = startIndex.clamp(0, symbols.length - 1);
     endIndex = endIndex.clamp(0, symbols.length);
 
     for (var symbol in symbols) {
-      wsSocket.unsubscribeFromSymbol(symbol.symbol);
+      context.read<WebSocketBloc>().add(UnsubscribeFromSymbol(symbol.symbol));
     }
 
     for (var i = startIndex; i < endIndex; i++) {
       if (i < symbols.length) {
-        wsSocket.subscribeToSymbol(symbols[i].symbol);
+        context.read<WebSocketBloc>().add(SubscribeToSymbol(symbols[i].symbol));
       }
     }
   }
@@ -106,73 +81,83 @@ class _RealTimeStockAppState extends ConsumerState<StockList> {
         appBar: AppBar(
           title: const Text(Constants.appTitle),
         ),
-        body: Column(
-          children: [
-            SearchInputWidget(
-              onTextChanged: (searchQuery) {
-                setState(() {
-                  filteredSymbols = symbols
-                      .where((symbol) => symbol.description
-                          .toLowerCase()
-                          .contains(searchQuery.toLowerCase()))
-                      .toList();
-                });
-              },
-            ),
-            Expanded(
-              child: StreamBuilder(
-                stream: wsSocket.priceStream,
-                builder: (context, priceSnapshot) {
-                  final priceMap = priceSnapshot.data ?? {};
-
-                  WidgetsBinding.instance.addPostFrameCallback((_) {
-                    for (var symbol in symbols) {
-                      if (priceMap.containsKey(symbol.symbol)) {
-                        final price = priceMap[symbol.symbol];
-                        if (price != null) {
-                          ref
-                              .read(stockPriceProvider.notifier)
-                              .updateStockPrice(symbol.symbol, price);
-                        }
-                      }
+        body: Column(children: [
+          SearchInputWidget(
+            onTextChanged: (searchQuery) {
+              context.read<StockListBloc>().add(FilterSymbols(searchQuery));
+            },
+          ),
+          Expanded(
+              child: BlocConsumer<StockListBloc, StockListState>(
+            builder: (context, state) {
+              if (state.loadStatus == LoadStatus.success) {
+                final loadedSymbols = state.filteredSymbols;
+                return ListView.builder(
+                  controller: _scrollController,
+                  itemCount:
+                      loadedSymbols.length + (state.hasMoreSymbols ? 1 : 0),
+                  itemBuilder: (context, index) {
+                    if (index < loadedSymbols.length) {
+                      final symbol = loadedSymbols[index];
+                      return ListTile(
+                        title: Text(symbol.description),
+                        subtitle: BlocBuilder<WebSocketBloc, WebSocketState>(
+                          builder: (context, state) {
+                            if (state is WebSocketDataStateReceived) {
+                              final priceMap = state.priceMap;
+                                if (priceMap.containsKey(symbol.symbol)) {
+                                  final price = priceMap[symbol.symbol];
+                                  return Text('Price: ${price}');
+                              }
+                            }
+                            return Text('Price: 0.0');
+                          },
+                        ),
+                        titleTextStyle: const TextStyle(
+                            color: Colors.black,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 20.0),
+                        subtitleTextStyle: const TextStyle(
+                            color: Colors.grey,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16.0),
+                        onTap: () => {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  StockDetailScreen(symbol: symbol.symbol),
+                            ),
+                          )
+                        },
+                      );
+                    } else {
+                      return const Center(
+                        child: CircularProgressIndicator(),
+                      );
                     }
+                  },
+                );
+              } else if (state.loadStatus == LoadStatus.loading) {
+                return const Center(
+                  child: CircularProgressIndicator(),
+                );
+              } else {
+                return const Center(
+                  child: Text('No data found'),
+                );
+              }
+            },
+            listener: (BuildContext context, StockListState state) {
+              if (state.loadStatus == LoadStatus.success) {
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                    _updateSubscriptions();
                   });
 
-                  return ListView.builder(
-                    controller: _scrollController,
-                    itemCount:
-                        filteredSymbols.length + (hasMoreSymbols ? 1 : 0),
-                    itemBuilder: (context, index) {
-                      if (index < filteredSymbols.length) {
-                        final symbol = filteredSymbols[index];
-                        final stockPrice =
-                            ref.watch(stockPriceProvider).firstWhere(
-                                  (s) => s.symbol == symbol.symbol,
-                                  orElse: () => StockPrice(symbol.symbol, 0.0),
-                                );
-                        return ListTile(
-                          title: Text(symbol.description),
-                          subtitle: Text('Price: ${stockPrice.price}'),
-                          titleTextStyle: const TextStyle(
-                              color: Colors.black,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 20.0),
-                          subtitleTextStyle: const TextStyle(
-                              color: Colors.grey,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16.0),
-                        );
-                      } else {
-                        return const Center(
-                          child: CircularProgressIndicator(),
-                        );
-                      }
-                    },
-                  );
-                },
-              ),
-            ),
-          ],
-        ));
+              }
+            },
+            listenWhen: (previous, current) => previous.loadStatus != current.loadStatus || previous.isLoadingMore != true,
+          )) 
+        ]));
   }
 }
