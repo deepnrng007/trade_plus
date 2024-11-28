@@ -22,7 +22,7 @@ class StockList extends ConsumerStatefulWidget {
 }
 
 class _RealTimeStockAppState extends ConsumerState<StockList> {
-  final limit= 20;
+  final limit = 20;
 
   late ScrollController _scrollController;
 
@@ -105,12 +105,12 @@ class _RealTimeStockAppState extends ConsumerState<StockList> {
                           builder: (context, state) {
                             if (state is WebSocketDataStateReceived) {
                               final priceMap = state.priceMap;
-                                if (priceMap.containsKey(symbol.symbol)) {
-                                  final price = priceMap[symbol.symbol];
-                                  return Text('Price: ${price}');
+                              if (priceMap.containsKey(symbol.symbol)) {
+                                final price = priceMap[symbol.symbol];
+                                return Text('Price: ${price}');
                               }
-                            }
-                            return Text('Price: 0.0');
+                            } 
+                              return Text('Price: 0.0');
                           },
                         ),
                         titleTextStyle: const TextStyle(
@@ -151,13 +151,15 @@ class _RealTimeStockAppState extends ConsumerState<StockList> {
             listener: (BuildContext context, StockListState state) {
               if (state.loadStatus == LoadStatus.success) {
                 WidgetsBinding.instance.addPostFrameCallback((_) {
-                    _updateSubscriptions();
-                  });
+                  _updateSubscriptions();
+                });
 
               }
             },
-            listenWhen: (previous, current) => previous.loadStatus != current.loadStatus || previous.isLoadingMore != true,
-          )) 
+            listenWhen: (previous, current) =>
+                previous.loadStatus != current.loadStatus ||
+                previous.isLoadingMore != true,
+          ))
         ]));
   }
 }

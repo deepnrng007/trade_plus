@@ -14,8 +14,6 @@ class StockRepository {
         final jsonResponse = json.decode(response.body)
             as List<dynamic>; // Ensure it's treated as a List
         final listItems = jsonResponse
-            .skip(offset)
-            .take(limit)
             .map((item) => StockSymbol.fromJson(item))
             .toList();
         return listItems;

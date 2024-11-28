@@ -25,10 +25,9 @@ class StockListBloc extends Bloc<StockListEvent, StockListState> {
         .then((response) {
       emit(state.copyWith(
         loadStatus: LoadStatus.success,
-        symbols: response.skip(0).take(20).toList(),
+        symbols: response.toList(),
         filteredSymbols: response.skip(0).take(20).toList(),
       ));
-
     }).onError((error, stackTrace) {
       emit(state.copyWith(
           loadStatus: LoadStatus.failure, message: error.toString()));
@@ -42,29 +41,22 @@ class StockListBloc extends Bloc<StockListEvent, StockListState> {
       return;
     }
     emit(state.copyWith(isLoadingMore: true));
-    await stockRepository
-        .fetchSymbols(limit: event.limit, offset: event.offset)
-        .then((response) {
-      if (response.isEmpty) {
-        emit(state.copyWith(
-          loadStatus: LoadStatus.success,
-          hasMoreSymbols: false,
-          isLoadingMore: false,
-        ));
-        return;
-      }
+    // await Future.delayed(const Duration(seconds: 3));
+    final items = state.symbols.skip(event.offset).take(event.limit).toList();
+
+    if (items.isEmpty) {
       emit(state.copyWith(
-          loadStatus: LoadStatus.success,
-          symbols: state.symbols + response,
-          filteredSymbols: state.symbols + response,
-          isLoadingMore: false,
-          currentPage: state.currentPage + 1));
-    }).onError((error, stackTrace) {
-      emit(state.copyWith(
-          loadStatus: LoadStatus.failure,
-          message: error.toString(),
-          isLoadingMore: false));
-    });
+        loadStatus: LoadStatus.success,
+        hasMoreSymbols: false,
+        isLoadingMore: false,
+      ));
+      return;
+    }
+    emit(state.copyWith(
+        loadStatus: LoadStatus.success,
+        filteredSymbols: state.symbols + items,
+        isLoadingMore: false,
+        currentPage: state.currentPage + 1));
   }
 
   void _onSearchSymbols(FilterSymbols event, Emitter<StockListState> emit) {
