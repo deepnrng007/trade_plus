@@ -23,3 +23,6 @@ class StockPriceNotifier extends StateNotifier<List<StockPrice>> {
 final stockPriceProvider = StateNotifierProvider<StockPriceNotifier, List<StockPrice>>((ref) {
   return StockPriceNotifier();
 });
+
+
+
